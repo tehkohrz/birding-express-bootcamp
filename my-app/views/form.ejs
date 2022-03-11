@@ -1,0 +1,77 @@
+<%- include('nav-header', {titleName:'Notes Entry', }) %>
+
+<div class='container'>
+  <div class='row'>Note Entry</div>
+  <form class='row g-3 needs-validation' action="/note" method='POST' novalidate>
+    <% for(const [key, keyAtt] of Object.entries(entryTemplate)){%>
+    <div class="col-12">
+      <label for="<%=key%>" class="form-label"><%=keyAtt.label%></label>
+      <input type="<%= keyAtt.type %>" class="form-control" id="<%=key%>" name = '<%=key%>' value="">
+      <div class="invalid-feedback">
+        Please enter valid data.
+      </div>
+    </div>
+    <% } %>
+    <div class='col-12'>
+      <button class='entryButtons' type='submit'>Submit</button>
+      <button class='entryButtons' type='reset'>Reset</button>
+    </div>
+  </form>
+</div>
+<script>
+  // Example starter JavaScript for disabling form submissions if there are invalid fields
+(function () {
+  'use strict'
+
+  // Fetch all the forms we want to apply custom Bootstrap validation styles to
+  var forms = document.querySelectorAll('.needs-validation')
+
+  document.getElementById('date').required =true;
+  console.log('Date', $('#date').val);
+  console.log('Doc', document.getElementById('date'));
+  
+
+
+function checkForm() {
+  let valid = true;
+  console.log('size', $("#flock_size"));
+  
+  if (Date.parse($("#date").val()) > Date.now() || $("#date").val() === '') {
+    $("#date").addClass("is-invalid").removeClass("is-valid");
+    valid = false;
+  } else {
+    $("#date").addClass("is-valid").removeClass("is-invalid");
+  }
+
+  if ($("#flock_size").val() <= 0 || $("#flock_size").val() === undefined) {
+    $("#flock_size").addClass("is-invalid").removeClass("is-valid");
+    valid = false;
+  } else {
+    console.log('true');
+    
+    $("#flock_size").addClass("is-valid").removeClass("is-invalid");
+  }
+  console.log(valid);
+  
+  return valid;
+}
+
+  // Loop over them and prevent submission
+  Array.prototype.slice.call(forms)
+    .forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!checkForm(form)) {
+          console.log("CHECKED!");
+          
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        // this line causes all the field to look good
+        // form.classList.add('was-validated');
+      }, false);
+    });
+})();
+</script>
+
+</body>
+</html>

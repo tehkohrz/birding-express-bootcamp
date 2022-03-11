@@ -1,0 +1,17 @@
+<%- include('nav-header', {titleName:'Notes Entry', }) %>
+
+<div class = 'container'>
+ <div class = 'row'>Note <%=data.id%></div>
+    <%for(const [key, value] of Object.entries(data)) {%>
+      <div class="row">
+      <div  class ='infoLabel col-12' ><%=key%></div>
+      <div class="infoPara col-12"> <%= value %> </div>
+      </div>
+    <% } %> 
+    <div class ='row'>
+      <form>
+      <button class='entryButtons' type = 'submit' formaction="/note/<%=data.id%>/edit" formmethod="get">Edit</button>
+      <button class='entryButtons' type = 'submit' formaction='/note/<%=data.id%>?_method=DELETE' formmethod="post" form>Delete</button>
+    </form>
+    </div>
+</div>

@@ -1,0 +1,29 @@
+<%- include('nav-header', {titleName:'Bird Notes', }) %>
+
+<div class='container'>
+  <div class="row">List of Bird Notes</div>
+  <div class="row">
+    <div class="col">Note Id</div>
+    <div class="col">Date</div>
+    <!-- for the buttons -->
+    <div class="col"></div>
+  </div>
+  <!-- ejs loop to insert all notes -->
+  <% if (empty) {%>
+     <div class ='row'>
+       No notes found!
+     </div>
+  <%} else{ for (let i=0; i<data.notes.length; i+=1) {%>
+  <div class="row">
+    <div class="col"><%=data.notes[i].id%></div>
+    <div class="col"><%=data.notes[i].date%></div>
+    <div class="col"><%=data.notes[i].habitat%></div>
+    <div class="col"> <form> 
+      <button class="mainButton btn btn-dark col" formaction="/note/<%= data.notes[i].id %>" type='submit' formmethod="get">View</button>
+       <button class="mainButton btn btn-dark col" formaction="/note/<%= data.notes[i].id %>?_method=delete" type='submit' formmethod="post">Delete</button> </form>
+    </div>
+  </div>
+  <% }} %>
+</div>
+</body>
+</html>
