@@ -2,10 +2,10 @@
 
 <div class = 'container'>
  <div class = 'row'>Note <%=data.id%></div>
-    <%for(const [key, value] of Object.entries(data)) {%>
+    <%for(const [key, value] of Object.entries(entryTemplate)) {%>
       <div class="row">
-      <div  class ='infoLabel col-12' ><%=key%></div>
-      <div class="infoPara col-12"> <%= value %> </div>
+      <div  class ='infoLabel col-12' ><%=value.label%></div>
+      <div class="infoPara col-12"> <%= data[key] %> </div>
       </div>
     <% } %> 
     <div class ='row'>
@@ -15,3 +15,5 @@
     </form>
     </div>
 </div>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<%- include('nav-header', {titleName:'Sign Up', }) %>
+
+<div class="container">
+  <div class="row">Sign Up</div>
+  <div class="row">
+    <form class='g-3 needs-validation' action="/signup" method='POST' novalidate>
+      <div class="row">
+      <label for="email" class="signup-label form-label col-4">E-mail</label>
+      <input id="email" class="form-comtrol signup-input col-8" name="email" type='email' value='<%= values.email %>'></input>
+      <% if (invalidSubmit) {%>
+        <div>
+        Email has been used.
+      </div>
+      <%}%>  
+      <div class="invalid-feedback">
+        Please enter a valid email.
+      </div>
+      </div>
+      <div class="row">
+      <label for="password" class="signup-label form-label col-4">Password</label>
+      <input id="password" class="form-comtrol signup-input col-8" name="password" type='password' value='<%= values.password %>'/>
+    </div>
+    <input type="checkbox" onclick="showPassword()"/> Show Password</input>
+    <div class="row">
+       <button class='btn btn-dark entryButtons' type='submit'>Submit</button>
+      <button class='btn btn-dark entryButtons' type='reset'>Reset</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function showPassword() {
+  var passwordField = document.getElementById("password");
+  if (passwordField.type === "password") {
+    passwordField.type = "text";
+  } else {
+    passwordField.type = "password";
+  }
+}
+
+(function () {
+  'use strict'
+
+  // Fetch all the forms we want to apply custom Bootstrap validation styles to
+  var forms = document.querySelectorAll('.needs-validation')
+  Array.prototype.slice.call(forms)
+    .forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          console.log("CHECKED!");
+          
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        // this line causes all the field to look good
+        form.classList.add('was-validated');
+      }, false);
+    });
+})();
+</script>
+</body>
+</html>

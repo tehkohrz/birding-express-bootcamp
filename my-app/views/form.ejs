@@ -1,4 +1,4 @@
-<%- include('nav-header', {titleName:'Notes Entry', }) %>
+<%- include('nav-header', {titleName:'Notes Entry'}) %>
 
 <div class='container'>
   <div class='row'>Note Entry</div>
@@ -6,10 +6,19 @@
     <% for(const [key, keyAtt] of Object.entries(entryTemplate)){%>
     <div class="col-12">
       <label for="<%=key%>" class="form-label"><%=keyAtt.label%></label>
-      <input type="<%= keyAtt.type %>" class="form-control" id="<%=key%>" name = '<%=key%>' value="">
+      <% if (keyAtt.inputTag === 'dropdown') {%>
+      <!-- dropdown box for the species -->
+      <select name="species_id">
+        <% birdSpecies.forEach((bird) => { %>
+        <option value="<%= bird.id %>"><%= bird.name %></option>
+        <% }); %>
+      </select>
+      <% } else { %>
+      <input type="<%= keyAtt.type %>" class="form-control" id="<%=key%>" name='<%=key%>' value="">
       <div class="invalid-feedback">
         Please enter valid data.
       </div>
+      <% } %>
     </div>
     <% } %>
     <div class='col-12'>
@@ -20,58 +29,55 @@
 </div>
 <script>
   // Example starter JavaScript for disabling form submissions if there are invalid fields
-(function () {
-  'use strict'
+  (function () {
+    'use strict'
 
-  // Fetch all the forms we want to apply custom Bootstrap validation styles to
-  var forms = document.querySelectorAll('.needs-validation')
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    var forms = document.querySelectorAll('.needs-validation')
 
-  document.getElementById('date').required =true;
-  console.log('Date', $('#date').val);
-  console.log('Doc', document.getElementById('date'));
-  
+    document.getElementById('date').required = true;
 
+    function checkForm() {
+      let valid = true;
+      console.log('size', $("#flock_size"));
 
-function checkForm() {
-  let valid = true;
-  console.log('size', $("#flock_size"));
-  
-  if (Date.parse($("#date").val()) > Date.now() || $("#date").val() === '') {
-    $("#date").addClass("is-invalid").removeClass("is-valid");
-    valid = false;
-  } else {
-    $("#date").addClass("is-valid").removeClass("is-invalid");
-  }
+      if (Date.parse($("#date").val()) > Date.now() || $("#date").val() === '') {
+        $("#date").addClass("is-invalid").removeClass("is-valid");
+        valid = false;
+      } else {
+        $("#date").addClass("is-valid").removeClass("is-invalid");
+      }
 
-  if ($("#flock_size").val() <= 0 || $("#flock_size").val() === undefined) {
-    $("#flock_size").addClass("is-invalid").removeClass("is-valid");
-    valid = false;
-  } else {
-    console.log('true');
-    
-    $("#flock_size").addClass("is-valid").removeClass("is-invalid");
-  }
-  console.log(valid);
-  
-  return valid;
-}
+      if ($("#flock_size").val() <= 0 || $("#flock_size").val() === undefined) {
+        $("#flock_size").addClass("is-invalid").removeClass("is-valid");
+        valid = false;
+      } else {
+        console.log('true');
 
-  // Loop over them and prevent submission
-  Array.prototype.slice.call(forms)
-    .forEach(function (form) {
-      form.addEventListener('submit', function (event) {
-        if (!checkForm(form)) {
-          console.log("CHECKED!");
-          
-          event.preventDefault();
-          event.stopPropagation();
-        }
-        // this line causes all the field to look good
-        // form.classList.add('was-validated');
-      }, false);
-    });
-})();
+        $("#flock_size").addClass("is-valid").removeClass("is-invalid");
+      }
+      console.log(valid);
+
+      return valid;
+    }
+
+    // Loop over them and prevent submission
+    Array.prototype.slice.call(forms)
+      .forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+          if (!checkForm(form)) {
+            console.log("CHECKED!");
+
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          // this line causes all the field to look good
+          // form.classList.add('was-validated');
+        }, false);
+      });
+  })();
 </script>
 
 </body>
+
 </html>

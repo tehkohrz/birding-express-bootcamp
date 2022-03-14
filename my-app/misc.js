@@ -1,6 +1,4 @@
-import {
-  response,
-} from 'express';
+import jsSHA from 'jssha';
 
 function logError(err, result) {
   if (err) {
@@ -19,6 +17,7 @@ function logError(err, result) {
   return false;
 }
 
+// Capitalise the first letter of each word
 // @param keys{array}
 function formatKeys(keys) {
   keys.forEach((element) => {
@@ -47,8 +46,56 @@ function formatDate(dateString) {
   return dateReturn;
 }
 
+const SECRETSALT = 't0shib0i';
+
+function hashPassword(password) {
+  const shaObj = new jsSHA('SHA-512', 'TEXT', { encoding: 'UTF8' });
+  shaObj.update(`${password}`);
+  const hash = shaObj.getHash('HEX');
+  return hash;
+}
+
+// checks that the input string is the same after hashing
+// Default for session hash, can toggle for pwd
+function checkHash(unhashedString, hashString, toggle) {
+  const shaObj = new jsSHA('SHA-512', 'TEXT', { encoding: 'UTF8' });
+  if (toggle === 'password') {
+    shaObj.update(`${unhashedString}`);
+  } else {
+    const sessionString = unhashedString + SECRETSALT;
+    shaObj.update(`${sessionString}`);
+  }
+  const hashed = shaObj.getHash('HEX');
+  if (hashed === hashString) {
+    return true;
+  }
+  return false;
+}
+
+// creates session hash with SALT
+function hashSession(userId) {
+  const unhashed = userId + SECRETSALT;
+  const shaObj = new jsSHA('SHA-512', 'TEXT', { encoding: 'UTF8' });
+  shaObj.update(unhashed);
+  const sessionHash = shaObj.getHash('HEX');
+  return sessionHash;
+}
+
+function checkCookie(userCookie, response) {
+  if (userCookie.length === 0) {
+    response.cookie('loggedIn', 'false');
+    return false;
+  }
+  const checkSession = checkHash(userCookie.user, userCookie.loggedHash);
+  return checkSession;
+}
+
 export default {
   logError,
   formatKeys,
   formatDate,
+  hashPassword,
+  checkHash,
+  hashSession,
+  checkCookie,
 };
