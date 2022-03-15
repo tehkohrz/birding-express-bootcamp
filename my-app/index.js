@@ -1,4 +1,6 @@
-import express, { response } from 'express';
+import express, {
+  response,
+} from 'express';
 import pg from 'pg';
 import methodOverride from 'method-override';
 import cookieParser from 'cookie-parser';
@@ -98,7 +100,10 @@ app.get('/note', (req, res) => {
     pool.query(query, (err, result) => {
       const birdSpecies = result.rows;
       res.render('form', {
-        entryTemplate, birdSpecies, login, userDetails,
+        entryTemplate,
+        birdSpecies,
+        login,
+        userDetails,
       });
     });
   } else {
@@ -213,7 +218,7 @@ app.put('/note/:id/edit', (req, res) => {
   for (const [key, value] of Object.entries(newData)) {
     sqlQuery += `${key} = '${value}',`;
   }
-  //
+  // Remove the last comma
   sqlQuery = sqlQuery.slice(0, sqlQuery.length - 1);
   sqlQuery += `WHERE id=${id}`;
   console.log('Query:', sqlQuery);
@@ -221,6 +226,34 @@ app.put('/note/:id/edit', (req, res) => {
   pool.query(sqlQuery, (err, result) => {
     helps.logError(err, result);
     res.redirect(`/note/${id}`);
+  });
+});
+
+// Route for inserting new species
+app.get('/species', (req, res) => {
+  // Check for log in then can insert new species
+  const login = helps.checkCookie(req.cookies, res);
+  const userDetails = req.cookies;
+  // Check for login in else redirect to somewhere else
+  if (login) {
+    // Render form to enter species
+    res.render('form', {
+      login,
+      userDetails,
+    });
+  }
+  else {
+    res.redirect('/login');
+  }
+});
+
+// POST new species into the db
+app.post('/species', (req, res) => {
+  const speciesData = { ...req.body };
+  const sqlQuery = `INSERT INTO species (name, species_name) VALUES (${speciesData.name}, ${speciesData.scientific_name})`;
+  pool.query(sqlQuery, (err, result) => {
+    helps.logError(err, result);
+    res.redirect('/species');
   });
 });
 
@@ -344,8 +377,6 @@ app.delete('/logout', (req, res) => {
   // Redirect to the same page with no login cookie
   res.redirect('/');
 });
-
-// CREATE NEW USER-NOTE TABLE TO LINK USERS AND NOTES
 
 app.listen(3004);
 
