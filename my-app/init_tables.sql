@@ -21,3 +21,21 @@ CREATE TABLE IF NOT EXISTS species (
   scientific_name TEXT
 );
 
+CREATE TABLE IF NOT EXISTS behaviours (
+  id SERIAL PRIMARY KEY,
+  name TEXT
+);
+
+CREATE TABLE IF NOT EXISTS behaviours_notes (
+  id SERIAL PRIMARY KEY,
+  behaviour_id INTEGER,
+  notes_id INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS comments (
+  id SERIAL PRIMARY KEY,
+  comment_data TEXT,
+  date TEXT,
+  user_id INTEGER,
+  note_id INTEGER
+);

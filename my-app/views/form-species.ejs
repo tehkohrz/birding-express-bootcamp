@@ -4,6 +4,18 @@
   <div class='row'>New Species</div>
   <form class='row g-3' method='POST'>
     <div class="col-12">
+      <% if (edit) { %>
+        <label for="name" class="form-label">Name</label>
+      <input type="text" class="form-control" id="name" name = "name" value="<%=data.name%>"/>
+    </div>
+     <div class="col-12">
+      <label for="scientific_name" class="form-label">Scientific Name</label>
+      <input type="text" class="form-control" id="scientific_name" name = 'scientific_name' value="<%=data.scientific_name%>"/>
+    </div>
+    <div class='col-12'>
+      <button class='entryButtons' type='submit' formaction="/species/<%=data.id%>?_method=PUT">Submit</button>
+      <button class='entryButtons' type='reset'>Reset</button>
+        <% } else { %>  
       <label for="name" class="form-label">Name</label>
       <input type="text" class="form-control" id="name" name = "name" value=""/>
     </div>
@@ -12,9 +24,10 @@
       <input type="text" class="form-control" id="scientific_name" name = 'scientific_name' value=""/>
     </div>
     <div class='col-12'>
-      <button class='entryButtons' type='submit' formaction="/species?_method=PUT">Submit</button>
+      <button class='entryButtons' type='submit' formaction="/species">Submit</button>
       <button class='entryButtons' type='reset'>Reset</button>
     </div>
+    <% } %> 
   </form>
 </body>
 </html>

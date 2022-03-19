@@ -6,13 +6,22 @@
     <% for(const [key, keyAtt] of Object.entries(entryTemplate)){%>
     <div class="col-12">
       <label for="<%=key%>" class="form-label"><%=keyAtt.label%></label>
+      <!-- dropdown box generation -->
       <% if (keyAtt.inputTag === 'dropdown') {%>
-      <!-- dropdown box for the species -->
-      <select name="species_id">
+      <% if (key === 'species') {%>
+      <select name="species_id" id = "<%=key%>">
         <% birdSpecies.forEach((bird) => { %>
         <option value="<%= bird.id %>"><%= bird.name %></option>
         <% }); %>
       </select>
+      <% } %>
+       <% if (key === 'behaviour') {%>
+      <select name="behaviour" id = "<%=key%>">
+        <% behaviours.forEach((behaviour) => { %>
+        <option value="<%= behaviour.id %>"><%= behaviour.name %></option>
+        <% }); %>
+      </select>
+      <% } %>
       <% } else { %>
       <input type="<%= keyAtt.type %>" class="form-control" id="<%=key%>" name='<%=key%>' value="">
       <div class="invalid-feedback">

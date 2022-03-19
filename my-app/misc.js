@@ -1,5 +1,7 @@
 import jsSHA from 'jssha';
 
+// Returns errors depending on what it gets
+// No real purpose to the return yet
 function logError(err, result) {
   if (err) {
     console.log(err);
@@ -7,7 +9,6 @@ function logError(err, result) {
   }
   if (result.length <= 0) {
     console.log('Nothing found');
-    response.status(404);
     return true;
   }
   if (result === undefined) {
@@ -81,6 +82,11 @@ function hashSession(userId) {
   return sessionHash;
 }
 
+// Initialise cookie if there isnt any
+// Return false if no cookies
+// Return true if verified login
+// @param {object} entire cookie
+// @param {response} response for the route
 function checkCookie(userCookie, response) {
   if (userCookie.length === 0) {
     response.cookie('loggedIn', 'false');

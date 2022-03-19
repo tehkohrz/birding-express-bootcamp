@@ -1,19 +1,53 @@
 <%- include('nav-header', {titleName:'Notes Entry', }) %>
 
-<div class = 'container'>
- <div class = 'row'>Note <%=data.id%></div>
-    <%for(const [key, value] of Object.entries(entryTemplate)) {%>
-      <div class="row">
-      <div  class ='infoLabel col-12' ><%=value.label%></div>
-      <div class="infoPara col-12"> <%= data[key] %> </div>
-      </div>
-    <% } %> 
-    <div class ='row'>
-      <form>
-      <button class='entryButtons' type = 'submit' formaction="/note/<%=data.id%>/edit" formmethod="get">Edit</button>
-      <button class='entryButtons' type = 'submit' formaction='/note/<%=data.id%>?_method=DELETE' formmethod="post" form>Delete</button>
+<div class='container'>
+  <div class='row'>Note <%=data.id%></div>
+  <%for(const [key, value] of Object.entries(entryTemplate)) {%>
+  <div class="row">
+    <div class='infoLabel col-12'><%=value.label%></div>
+    <div class="infoPara col-12"> <%= data[key] %> </div>
+  </div>
+  <% } %>
+  <div class='row'>
+    <form>
+      <button class='entryButtons' type='submit' formaction="/note/<%=data.id%>/edit" formmethod="get">Edit</button>
+      <button class='entryButtons' type='submit' formaction='/note/<%=data.id%>?_method=DELETE' formmethod="post"
+        form>Delete</button>
     </form>
+  </div>
+</div>
+<div class="container">
+  <div class="row">
+    <div class="col-3">User</div>
+    <div class="col-3">Date</div>
+    <div class="col-6">Comments</div>
+  </div>
+  <!-- Render all the comments existing for the note -->
+  <% if(commentsData.length > 0) {%>
+  <% commentsData.forEach(element => { %>
+  <div class="row">
+      <div class="col-3"><%=element.email%></div>
+      <div class="col-3"><%=element.date%></div>
+      <div class="col-6"><%=element.comment_data%></div>
     </div>
+    <% }); %>
+    <% } else { %>
+      <div class="row">No Comments!</div>
+    <% } %>
+    </div>
+    <!-- From to enter the comment -->
+    <div class="container">
+    <form>
+      <div class="row">
+      <label class="col-12" for="comment">Comment Here!</label>
+    </div>
+      <div class="row">
+      <textarea id="comment" name="comment" class="col"></textarea>
+    </div>
+    <button class='entryButtons' type='submit' formaction="/note/<%=data.id%>/comment" formmethod="POST">Submit</button>
+    <button class='entryButtons' type='reset'>Reset</button>
+  </form>
 </div>
 </body>
+
 </html>

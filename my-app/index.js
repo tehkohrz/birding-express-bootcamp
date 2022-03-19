@@ -52,7 +52,7 @@ const entryTemplate = {
   },
   behaviour: {
     label: 'Behaviour',
-    inputTag: 'input',
+    inputTag: 'dropdown',
     type: 'text',
   },
   vocalisation: {
@@ -78,7 +78,6 @@ app.get('/', (req, res) => {
     const empty = helps.logError(err, result.rows);
     const data = {
       notes: result.rows,
-      keys: helps.formatKeys(Object.keys(result.rows[0])),
     };
     res.render('main', {
       data,
@@ -99,11 +98,17 @@ app.get('/note', (req, res) => {
     const query = 'SELECT * FROM species';
     pool.query(query, (err, result) => {
       const birdSpecies = result.rows;
-      res.render('form', {
-        entryTemplate,
-        birdSpecies,
-        login,
-        userDetails,
+      const innerQuery = 'SELECT * FROM behaviours';
+      pool.query(innerQuery, (innerErr, innerResult) => {
+        helps.logError(innerErr, innerResult);
+        const behaviours = innerResult.rows;
+        res.render('form', {
+          entryTemplate,
+          birdSpecies,
+          login,
+          userDetails,
+          behaviours,
+        });
       });
     });
   } else {
@@ -122,7 +127,7 @@ app.post('/note', (req, res) => {
     helps.logError(userError, userResult);
 
     const formData = req.body;
-    const sqlQuery = `INSERT INTO notes (habitat,  date, appearance, behaviour, vocalisation, flock_size, user_id) VALUES ('${formData.habitat}', '${formData.date}', '${formData.appearance}', '${formData.behaviour}', '${formData.vocalisation}', '${formData.flock_size}', '${userResult.rows[0].id}') RETURNING *`;
+    const sqlQuery = `INSERT INTO notes (habitat,  date, appearance, behaviour, vocalisation, flock_size, user_id, species_id) VALUES ('${formData.habitat}', '${formData.date}', '${formData.appearance}', '${formData.behaviour}', '${formData.vocalisation}', '${formData.flock_size}', '${userResult.rows[0].id}','${formData.species_id}') RETURNING *`;
     // Have to put inside the callback else the async will screw it up
     pool.query(sqlQuery, (err, result) => {
       helps.logError(err, result);
@@ -142,16 +147,30 @@ app.get('/note/:id', (req, res) => {
   const {
     id,
   } = req.params;
-  const sqlQuery = `SELECT * FROM notes WHERE id=${id}`;
+  console.log('ID', id);
+  const sqlQuery = `SELECT  notes.id, notes.habitat, notes.date, notes.appearance, notes.behaviour, notes.vocalisation, notes.flock_size, notes.user_id, notes.species_id, species.name AS species, users.email
+  FROM notes INNER JOIN species ON notes.species_id = species.id 
+  INNER JOIN users ON notes.user_id = users.id 
+  WHERE notes.id=${id}`;
   pool.query(sqlQuery, (err, result) => {
     helps.logError(err, result);
     const data = result.rows[0];
-    delete data.user_id;
-    res.render('single-note', {
-      data,
-      entryTemplate,
-      login,
-      userDetails,
+    console.log('Note Data', data);
+    // Retrieve all the comments for the note
+    const innerQuery = `SELECT comments.id, comments.comment_data, date, comments.user_id, comments.note_id, users.email, users.id FROM comments INNER JOIN users ON users.id = comments.user_id WHERE comments.note_id = ${id}`;
+    pool.query(innerQuery, (innerErr, innerResult) => {
+      let commentsData = [];
+      if (!helps.logError(innerErr, innerQuery)) {
+        commentsData = [...innerResult.rows];
+      }
+      commentsData.sort((a, b) => b.date - a.date);
+      res.render('single-note', {
+        data,
+        entryTemplate,
+        login,
+        userDetails,
+        commentsData,
+      });
     });
   });
 });
@@ -221,7 +240,6 @@ app.put('/note/:id/edit', (req, res) => {
   // Remove the last comma
   sqlQuery = sqlQuery.slice(0, sqlQuery.length - 1);
   sqlQuery += `WHERE id=${id}`;
-  console.log('Query:', sqlQuery);
   // Redirect to the notes viewing
   pool.query(sqlQuery, (err, result) => {
     helps.logError(err, result);
@@ -237,9 +255,11 @@ app.get('/species', (req, res) => {
   // Check for login in else redirect to somewhere else
   if (login) {
     // Render form to enter species
-    res.render('form', {
+    res.render('form-species', {
       login,
       userDetails,
+      edit: false,
+      entryTemplate,
     });
   }
   else {
@@ -253,8 +273,100 @@ app.post('/species', (req, res) => {
   const sqlQuery = `INSERT INTO species (name, species_name) VALUES (${speciesData.name}, ${speciesData.scientific_name})`;
   pool.query(sqlQuery, (err, result) => {
     helps.logError(err, result);
-    res.redirect('/species');
+    res.redirect('/species/all');
   });
+});
+
+// Route to show a list of all the species
+app.get('/species/all', (req, res) => {
+  const login = helps.checkCookie(req.cookies, res);
+  const userDetails = req.cookies;
+  // Pull all species form the DB
+  const sqlQuery = 'SELECT * FROM species';
+  pool.query(sqlQuery, (err, result) => {
+    const empty = helps.logError(err, result);
+    const species = result.rows;
+    res.render('species-list', {
+      empty, login, userDetails, species,
+    });
+  });
+});
+
+// Route to view entries with the particular species
+app.get('/species/:id', (req, res) => {
+  const { id } = req.params;
+  const login = helps.checkCookie(req.cookies, res);
+  const userDetails = req.cookies;
+  // Retrieve all entries that are of the selected species id
+  const sqlQuery = `SELECT notes.id, notes.species_id, species.name, species.scientific_name, notes.date, notes.habitat FROM species INNER JOIN notes ON notes.species_id = species.id WHERE notes.species_id = ${id}`;
+  pool.query(sqlQuery, (err, result) => {
+    const empty = helps.logError(err, result);
+    console.log(result.rows);
+    const data = result.rows;
+    res.render('species-notes', {
+      login, userDetails, data, empty,
+    });
+  });
+});
+
+// Deletion of species entry
+app.delete('/species/:id', (req, res) => {
+  const { id } = req.params;
+  const login = helps.checkCookie(req.cookies, res);
+  const userDetails = req.cookies;
+  // If user logged in then can delete species
+  if (login) {
+    const sqlQuery = `DELETE FROM species WHERE id = ${id}`;
+    pool.query(sqlQuery, (err, result) => {
+      helps.logError(err, result);
+      res.redirect('/species/all');
+    });
+  } else {
+    res.redirect('/login');
+  }
+  // If user logged in then can delete species
+  if (login) {
+    const sqlQuery = `DELETE FROM species WHERE id = ${id}`;
+    pool.query(sqlQuery, (err, result) => {
+      helps.logError(err, result);
+      res.redirect('/species/all');
+    });
+  } else {
+    res.redirect('/login');
+  }
+});
+
+// Route to editing of species
+app.get('/species/:id/edit', (req, res) => {
+  const { id } = req.params;
+  const login = helps.checkCookie(req.cookies, res);
+  const userDetails = req.cookies;
+  // If user logged in then can edit species
+  if (login) {
+    const sqlQuery = `SELECT * FROM species WHERE id = ${id}`;
+    pool.query(sqlQuery, (err, result) => {
+      helps.logError(err, result);
+      const data = result.rows[0];
+      res.render('form-species', {
+        data, edit: true, login, userDetails,
+      });
+    });
+  } else {
+    res.redirect('/login');
+  }
+});
+
+// Update of bird species info
+app.put('/species/:id/edit', (req, res) => {
+  const { id } = req.params;
+  const data = req.body;
+  const sqlQuery = 'UPDATE species SET';
+  for (const [key, value] of Object.entries(newData)) {
+    sqlQuery += `${key} = '${value}',`;
+  }
+  // Remove the last comma
+  sqlQuery = sqlQuery.slice(0, sqlQuery.length - 1);
+  sqlQuery += `WHERE id=${id}`;
 });
 
 // @@@@@@@@@@@@@@@@@@@@@@@@ USER PORTION @@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -376,6 +488,36 @@ app.delete('/logout', (req, res) => {
   console.log(req.url);
   // Redirect to the same page with no login cookie
   res.redirect('/');
+});
+
+// @@@@@@@@@@@@@@@@@@@@@ COMMENTS @@@@@@@@@@@@@@@@@@@@@
+app.post('/note/:id/comment', (req, res) => {
+  // Check for login first
+  const login = helps.checkCookie(req.cookies, res);
+  // Set comment data with date
+  const userDetails = req.cookies;
+  const commentData = { ...req.body };
+  commentData.note_id = req.params.id;
+  commentData.date = new Date();
+  // Get user_id so that it is easier to update when username changes
+  if (login) {
+    const sqlQuery = `SELECT * FROM users WHERE email = '${userDetails.user}'`;
+    console.log(sqlQuery);
+
+    pool.query(sqlQuery, (err, result) => {
+      helps.logError(err, result);
+      commentData.user_id = result.rows[0].id;
+      // Insert data into comments database
+      const innerQuery = `INSERT INTO comments (comment_data, date, user_id, note_id) VALUES ('${commentData.comment}', '${commentData.date}','${commentData.user_id}', '${commentData.note_id}')`;
+      pool.query(innerQuery, (innerErr, innerResult) => {
+        helps.logError(innerErr, innerResult);
+        console.log('DATA', commentData);
+        res.redirect(`/note/${commentData.note_id}`);
+      });
+    });
+  } else {
+    res.redirect('/login');
+  }
 });
 
 app.listen(3004);

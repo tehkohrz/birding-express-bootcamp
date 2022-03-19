@@ -1,0 +1,30 @@
+<%- include('nav-header', {titleName:'Bird Species', }) %>
+
+<div class='container'>
+  <div class="row">List of Bird Species</div>
+  <div class="row">
+    <div class="col">Species Id</div>
+    <div class="col">Name</div>
+    <!-- for the buttons -->
+    <div class="col"></div>
+  </div>
+  <!-- ejs loop to insert all notes -->
+  <% if (empty) {%>
+     <div class ='row'>
+       No species found!
+     </div>
+  <%} else{ for (let i=0; i<species.length; i+=1) {%>
+  <div class="row">
+    <div class="col"><%=i+1%></div>
+    <div class="col"><%=species[i].name%></div>
+    <div class="col"><%=species[i].scientific_name%></div>
+    <div class="col"> <form> 
+      <button class="mainButton btn btn-dark col" formaction="/species/<%=species[i].id%>" type='submit' formmethod="get">View</button>
+      <button class="mainButton btn btn-dark col" formaction="/species/<%=species[i].id%>/edit" type='submit' formmethod="get">Edit</button>
+       <button class="mainButton btn btn-dark col" formaction="/note/<%=species[i].id%>?_method=delete" type='submit' formmethod="post">Delete</button> </form>
+    </div>
+  </div>
+  <% }} %>
+</div>
+</body>
+</html>
